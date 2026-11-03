@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AC Circuit Challenge Lab</title>
+<style>
+:root{--blue:#1687d9;--ink:#16212b;--muted:#5d7083;--bg:#eef3f7;--line:#cfdae3;--good:#16835f;--bad:#b63838}
+*{box-sizing:border-box}body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(120deg,#0d2740,#155b88);color:#fff;padding:20px clamp(14px,4vw,44px)}
+header h1{margin:0 0 4px;font-size:clamp(1.4rem,3vw,2.1rem)}header p{margin:0;color:#d8edfb}
+.wrap{max-width:1300px;margin:auto;padding:18px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tab{border:0;border-radius:10px;padding:10px 16px;font-weight:700;background:#dbe6ee;color:#22384a;cursor:pointer;font:inherit;font-weight:700}
+.tab.active{background:var(--blue);color:#fff}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 5px 18px #17334d12;margin-bottom:16px}
+.card h2{margin:0 0 10px;font-size:1.2rem}
+.top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}@media(max-width:950px){.top{grid-template-columns:1fr}}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.control{display:flex;flex-direction:column;gap:4px}.control label{font-size:.8rem;font-weight:700;color:#41586c}
+select{padding:8px;border:1px solid #b9c8d3;border-radius:8px;font:inherit;background:#fff}
+.btn{border:0;border-radius:9px;padding:10px 15px;cursor:pointer;font:inherit;font-weight:700}
+.primary{background:var(--blue);color:#fff}.secondary{background:#e3ebf1;color:#22384a}.warn{background:#fbe9d2;color:#7a4300}
+.btn:focus-visible,input:focus-visible,select:focus-visible,.tab:focus-visible{outline:3px solid #f2b705;outline-offset:2px}
+.given{background:#e8f6ff;border-left:5px solid var(--blue);padding:12px 14px;border-radius:8px;margin-top:12px;line-height:1.65}
+.given ul{margin:4px 0 0;padding-left:20px}
+.diagram{background:#f7fbfd;border:1px solid #d7e2ea;border-radius:12px;overflow:auto}
+.diagram svg{display:block;width:100%;min-width:520px;height:auto}
+.wire{stroke:#17384f;stroke-width:3;fill:none}.res{stroke:#0f6fae;stroke-width:3;fill:none}
+.coil{stroke:#a35f0e;stroke-width:3;fill:none}.cap{stroke:#7a3aa8;stroke-width:4}
+.lbl{font:700 12.5px "Segoe UI",Arial;fill:#17384f}.sm{font:600 12px "Segoe UI",Arial;fill:#5d7083}.nm{font:800 13px "Segoe UI",Arial;fill:#0f5f91}
+.src{stroke:#17384f;stroke-width:3;fill:#fff}
+.chartwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:.9rem}
+th,td{border:1px solid #d5e0e8;padding:5px;text-align:center}
+thead th{background:#17384f;color:#fff}
+tbody th{background:#f2f6f9;text-align:left;white-space:nowrap;padding-left:10px}
+td.tot{background:#fff8e6}thead th.tot{background:#8a5a00}
+td.na{background:#eceff2;color:#9aa7b2}
+td.giv{background:#e9f6ee;font-weight:700;color:#0c5a3c}
+.cell{display:flex;align-items:center;gap:4px;justify-content:center}
+.cell input{width:92px;padding:6px;border:1px solid #b7c7d2;border-radius:6px;text-align:right;font:inherit}
+.cell input.ok{border-color:var(--good);background:#ecfaf4}.cell input.no{border-color:var(--bad);background:#fff1f1}
+.cell input.rev{border-color:#d98016;background:#fff8df}
+.u{font-size:.75rem;color:var(--muted);min-width:28px;text-align:left}
+.status{margin-top:12px;padding:10px;border-radius:9px;font-weight:650;background:#f2f6f9}
+.status.good{background:#e8f7f1;color:#086644}.status.bad{background:#fff0f0;color:#922}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.metric{background:#f2f7fa;border-radius:10px;padding:8px 14px;text-align:center;min-width:110px}.metric b{display:block;font-size:1.1rem;color:#0f5f91}
+.note{font-size:.84rem;color:var(--muted);line-height:1.5}
+.formula{background:#142d43;color:#eaf7ff;border-radius:10px;padding:12px;font-family:Consolas,monospace;font-size:.82rem;line-height:1.75;overflow:auto}
+.key{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin:8px 0}
+.sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:4px;border:1px solid #c5d0d8}
+.hint{margin-top:10px;background:#fff8e6;border-left:5px solid #d98016;border-radius:8px;padding:10px 12px;font-size:.88rem;line-height:1.5}
+@media print{.tabs,.controls,.btn,header,.hint{display:none}.card{box-shadow:none}}
+</style>
+</head>
+<body>
+<header><h1>AC Circuit Challenge Lab</h1><p>Second Period Electrical Apprentices • Series RL • Series RLC • Parallel RL • Parallel RLC • Pure &amp; Real Coils</p></header>
+<main class="wrap" id="acLab">
+<div class="tabs" id="tabs" role="tablist"></div>
+
+<div class="top">
+<section class="card">
+  <div class="controls">
+    <div class="control"><label for="coilMode">Coil type</label>
+      <select id="coilMode"><option value="mixed">Mixed (random)</option><option value="pure">Pure coil only</option><option value="real">Real coil only</option></select></div>
+    <div class="control"><label for="givenMode">Given information</label>
+      <select id="givenMode"><option value="varied" selected>Varied (V, I, P, Q, PF…)</option><option value="classic">Classic (component values)</option></select></div>
+    <div class="control"><label for="difficulty">Difficulty</label>
+      <select id="difficulty"><option value="guided">Guided (reactances given)</option><option value="standard" selected>Standard</option></select></div>
+    <button type="button" class="btn primary" id="newBtn">New circuit</button>
+  </div>
+  <div id="given" class="given"></div>
+  <div id="notes" class="note" style="margin-top:10px"></div>
+  <details style="margin-top:8px"><summary class="note"><b>Show a starting hint</b></summary><div id="hint" class="hint"></div></details>
+</section>
+<section class="card">
+  <h2>Circuit</h2>
+  <div class="diagram" id="diagram"></div>
+</section>
+</div>
+
+<section class="card">
+  <h2>Circuit Chart</h2>
+  <p class="note">Solve every open cell for each load and for the circuit totals. Enter <b>magnitudes</b> (no signs). L in mH, C in µF, angles in degrees. For each load, θ is the angle between that load's voltage and current; for the total, between source voltage and total current. Then select whether the circuit is lagging, leading, or at unity.</p>
+  <div class="key"><span><i class="sw" style="background:#e9f6ee"></i>Given value</span><span><i class="sw" style="background:#eceff2"></i>Not applicable</span><span><i class="sw" style="background:#fff8e6"></i>Circuit totals</span></div>
+  <div class="chartwrap"><table id="chart"></table></div>
+  <div class="controls" style="margin-top:12px">
+    <div class="control"><label for="pfSel">Total circuit power factor is</label>
+      <select id="pfSel"><option value="">— select —</option><option value="lagging">Lagging</option><option value="leading">Leading</option><option value="unity">Unity</option></select></div>
+    <button type="button" class="btn primary" id="checkBtn">Check answers</button>
+    <button type="button" class="btn secondary" id="clearBtn">Clear</button>
+    <button type="button" class="btn warn" id="revealBtn">Reveal solution</button>
+    <button type="button" class="btn secondary" id="printBtn">Print</button>
+  </div>
+  <div id="status" class="status" aria-live="polite">Solve the circuit, then check your answers.</div>
+  <div class="stats">
+    <div class="metric"><b id="score">0 / 0</b>Cells correct</div>
+    <div class="metric"><b id="streak">0</b>Perfect streak</div>
+    <div class="metric"><b id="solved">0</b>Circuits solved</div>
+  </div>
+  <details style="margin-top:14px"><summary><b>Formula reference</b></summary>
+  <div class="formula">
+  X<sub>L</sub> = 2πfL &nbsp;&nbsp; X<sub>C</sub> = 1 / (2πfC) &nbsp;&nbsp; L = X<sub>L</sub> / 2πf &nbsp;&nbsp; C = 1 / (2πfX<sub>C</sub>)<br>
+  Real coil: Z<sub>coil</sub> = √(R<sub>coil</sub>² + X<sub>L</sub>²) &nbsp;&nbsp; R<sub>coil</sub> = Z × PF &nbsp;&nbsp; X<sub>L</sub> = √(Z² − R<sub>coil</sub>²)<br>
+  Any load: Z = V / I &nbsp; P = I²R = V<sub>R</sub>²/R &nbsp; Q = I²X = V<sub>X</sub>²/X &nbsp; S = V × I = √(P² + Q²) &nbsp; PF = P / S &nbsp; θ = cos⁻¹(PF)<br>
+  SERIES: I is common &nbsp; R<sub>T</sub> = ΣR &nbsp; X<sub>T</sub> = |X<sub>L</sub> − X<sub>C</sub>| &nbsp; Z<sub>T</sub> = √(R<sub>T</sub>² + X<sub>T</sub>²)<br>
+  PARALLEL: V is common &nbsp; I<sub>branch</sub> = V / Z<sub>branch</sub> &nbsp; I<sub>T</sub> = S<sub>T</sub> / E<sub>T</sub> &nbsp; Z<sub>T</sub> = E<sub>T</sub> / I<sub>T</sub><br>
+  Totals: P<sub>T</sub> = ΣP &nbsp; Q<sub>T</sub> = |Q<sub>L</sub> − Q<sub>C</sub>| &nbsp; S<sub>T</sub> = √(P<sub>T</sub>² + Q<sub>T</sub>²) = E<sub>T</sub> × I<sub>T</sub> &nbsp; PF = P<sub>T</sub> / S<sub>T</sub><br>
+  Q<sub>L</sub> &gt; Q<sub>C</sub> → lagging &nbsp;&nbsp; Q<sub>C</sub> &gt; Q<sub>L</sub> → leading
+  </div></details>
+</section>
+</main>
+
+<script>
+(()=>{'use strict';
+const TYPES=[['seriesRL','Series RL'],['seriesRLC','Series RLC'],['parallelRL','Parallel RL'],['parallelRLC','Parallel RLC']];
+const ROWS=[['R','Resistance (R)','Ω'],['L','Inductance (L)','mH'],['C','Capacitance (C)','µF'],
+ ['X','Reactance (X)','Ω'],['Z','Impedance (Z)','Ω'],['V','Voltage (V / E)','V'],['I','Current (I)','A'],
+ ['P','True power (P)','W'],['Q','Reactive power (Q)','var'],['S','Apparent power (S)','VA'],
+ ['PF','Power factor (PF)',''],['TH','Phase angle (θ)','°']];
+const UNIT=Object.fromEntries(ROWS.map(r=>[r[0],r[2]]));
+const SYM={R:'R',L:'L',C:'C',X:'X',Z:'Z',V:'V',I:'I',P:'P',Q:'Q',S:'S',PF:'PF',TH:'θ'};
+const root=document.getElementById('acLab');const $=s=>root.querySelector(s);
+let type='seriesRL',c=null,G={},stats={hit:0,tot:0,streak:0,solved:0};
+const rnd=(a,b,d)=>+(a+Math.random()*(b-a)).toFixed(d);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const wpick=list=>{const t=list.reduce((s,x)=>s+x[1],0);let r=Math.random()*t;for(const x of list){r-=x[1];if(r<=0)return x[0];}return list[0][0];};
+const deg=r=>r*180/Math.PI;
+const fmt=(v,row)=>{if(!isFinite(v))return'—';if(row==='PF')return v.toFixed(3);if(row==='TH')return v.toFixed(1);
+ if(row==='L'||row==='C')return(+v.toFixed(1)).toString();return Number(v.toPrecision(4)).toString();};
+
+$('#tabs').innerHTML=TYPES.map(([k,n])=>`<button type="button" role="tab" class="tab${k===type?' active':''}" data-type="${k}">${n}</button>`).join('');
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-type]');if(!b)return;type=b.dataset.type;
+ root.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));make();});
+
+/* ---------- build circuit & full solution ---------- */
+function make(){
+ const par=type.startsWith('parallel'),hasC=type.endsWith('RLC'),mode=$('#coilMode').value;
+ const real=mode==='real'||(mode==='mixed'&&Math.random()<.5);
+ const V=pick([120,208,240,277,347,480]),f=pick([60,60,60,50]);
+ const R=rnd(8,60,1),Lm=rnd(30,250,1),Rc=real?rnd(4,25,1):0;
+ const XL=2*Math.PI*f*Lm/1000;let Cu=0,XC=0;
+ if(hasC){let n=0;do{Cu=rnd(20,250,1);XC=1e6/(2*Math.PI*f*Cu);n++;}while(Math.abs(XC-XL)/XL<.2&&n<60);}
+ const loads=[{id:'R',kind:'R',R,X:0},{id:'L',kind:'L',R:Rc,X:XL,Lm,real}];
+ if(hasC)loads.push({id:'C',kind:'C',R:0,X:XC,Cu});
+ loads.forEach(l=>l.Z=Math.hypot(l.R,l.X));
+ const T={V};
+ if(!par){const RT=R+Rc,Xn=XL-XC,ZT=Math.hypot(RT,Xn),I=V/ZT;loads.forEach(l=>{l.I=I;l.V=I*l.Z;});Object.assign(T,{R:RT,X:Math.abs(Xn),Z:ZT,I});}
+ else loads.forEach(l=>{l.V=V;l.I=V/l.Z;});
+ loads.forEach(l=>{l.P=l.I*l.I*l.R;l.Q=l.I*l.I*l.X;l.S=l.V*l.I;l.PF=l.P/l.S;l.TH=deg(Math.acos(Math.min(1,l.PF)));});
+ const PT=loads.reduce((s,l)=>s+l.P,0),Qn=loads.reduce((s,l)=>s+(l.kind==='C'?-l.Q:l.Q),0),ST=Math.hypot(PT,Qn);
+ Object.assign(T,{P:PT,Q:Math.abs(Qn),S:ST,PF:PT/ST,TH:deg(Math.acos(Math.min(1,PT/ST)))});
+ if(par){T.I=ST/V;T.Z=V/T.I;}
+ c={par,hasC,real,f,loads,T,lag:Math.abs(Qn)<.01?'unity':(Qn>0?'lagging':'leading')};
+ chooseGivens();render();
+}
+function val(col,row){if(col==='T')return c.T[row];const l=c.loads.find(x=>x.id===col);
+ return row==='L'?l.Lm:row==='C'?l.Cu:l[row];}
+function isNA(col,row){
+ if(col==='T')return c.par?['R','L','C','X'].includes(row):['L','C'].includes(row);
+ const l=c.loads.find(x=>x.id===col);
+ if(row==='R')return !(l.kind==='R'||(l.kind==='L'&&l.real));
+ if(row==='L')return l.kind!=='L';if(row==='C')return l.kind!=='C';
+ if(row==='X')return l.kind==='R';if(row==='Z')return !(l.kind==='L'&&l.real);
+ return false;}
+
+/* ---------- choose a solvable set of givens ----------
+   Each scenario = one "anchor" that fixes the common quantity (I in series, V in parallel)
+   + one "size" fact per load (two for a real coil). */
+function chooseGivens(){
+ G={T:{},R:{},L:{},C:{}};const g=(col,...rows)=>rows.forEach(r=>G[col][r]=true);
+ const varied=$('#givenMode').value==='varied',P=c.par,coil=c.loads[1];
+ const comp=()=>{g('R','R');g('L','L');if(coil.real)g('L','R');if(c.hasC)g('C','C');};
+ let anchor='VT';
+ if(varied)anchor=P?wpick([['VT',3],['RI',2],['RP',1],['SI',1],['PFI',2],['IT',1]])
+                   :wpick([['VT',2],['IT',2],['RV',2],['RP',1],['VS',1],['VPF',2]]);
+ c.anchor=anchor;
+ if(anchor==='VT'||anchor==='IT'){ // all component values
+   g('T',anchor==='VT'?'V':'I');comp();
+   if(anchor==='VT'&&P)c.loads.forEach(l=>g(l.id,'V'));
+   if(varied&&anchor==='VT'&&Math.random()<.6)variedSizes(g,false); // still V given, but sizes varied
+ } else {
+   if(anchor==='RV'){g('R','R','V');}
+   if(anchor==='RI'){g('R','R','I');}
+   if(anchor==='RP'){g('R','R','P');}
+   if(anchor==='VS'){g('T','V','S');}
+   if(anchor==='VPF'){g('T','V','P','PF');}
+   if(anchor==='SI'){g('T','S','I');}
+   if(anchor==='PFI'){g('T','P','PF','I');}
+   variedSizes(g,['RV','RI','RP'].includes(anchor));
+ }
+ if($('#difficulty').value==='guided'){if(G.L.L)g('L','X');if(c.hasC&&G.C.C)g('C','X');}
+}
+function variedSizes(g,skipR){
+ const P=c.par,coil=c.loads[1];
+ // In series with source V as the anchor, sizes must be component values (no current yet).
+ const onlyComp=c.anchor==='VT'&&!P;
+ ['R','L','C'].forEach(id=>{G[id]={};});
+ if(skipR){/* resistor already set by anchor */ G.R={R:true};
+   if(c.anchor==='RV')G.R.V=true;if(c.anchor==='RI')G.R.I=true;if(c.anchor==='RP')G.R.P=true;}
+ else g('R',onlyComp?'R':pick(P?['R','R','I','P']:['R','R','V','P']));
+ if(coil.real){
+   let opts=onlyComp?[['L','R']]:P?[['L','R'],['R','I'],['P','Q'],['I','PF']]:[['L','R'],['R','V'],['P','Q'],['V','PF'],['L','P']];
+   if(coil.PF<.15)opts=opts.filter(o=>!o.includes('PF'));
+   g('L',...pick(opts));
+ } else g('L',onlyComp?'L':pick(P?['L','L','I','Q']:['L','L','V','Q']));
+ if(c.hasC)g('C',onlyComp?'C':pick(P?['C','C','I','Q']:['C','C','V','Q']));
+ if(c.anchor==='VT'&&P)c.loads.forEach(l=>g(l.id,'V'));
+}
+
+/* ---------- rendering ---------- */
+const NAME={R:'Resistor',C:'Capacitor'};
+const lname=l=>l.kind==='L'?(l.real?'Real coil':'Pure coil'):NAME[l.kind];
+const head=l=>l.kind==='R'?'Resistor (R)':l.kind==='L'?(l.real?'Real coil (R<sub>c</sub> + L)':'Pure coil (L)'):'Capacitor (C)';
+function factTxt(col,row){
+ const v=fmt(val(col,row),row),u=UNIT[row];
+ const sub=col==='T'?'T':col==='L'?(row==='R'?'coil':'L'):col;
+ if(col==='T'&&row==='V')return `E<sub>T</sub> = ${v} V`;
+ if(row==='L')return `L = ${v} mH`;if(row==='C')return `C = ${v} µF`;
+ if(row==='R'&&col!=='T')return col==='L'?`R<sub>coil</sub> = ${v} Ω`:`R = ${v} Ω`;
+ return `${SYM[row]}<sub>${sub}</sub> = ${v}${u?' '+u:''}`;}
+const ORDER=['V','I','R','L','C','X','Z','P','Q','S','PF','TH'];
+const facts=col=>ORDER.filter(r=>G[col][r]&&!(c.par&&r==='V'&&col!=='T'&&G.T.V)).map(r=>factTxt(col,r));
+
+function render(){
+ const tf=facts('T');
+ let h=`<b>${c.par?'Parallel':'Series'} ${c.hasC?'RLC':'RL'} circuit — frequency ${c.f} Hz</b><ul>`;
+ if(tf.length)h+=`<li><b>Circuit:</b> ${tf.join(', ')}</li>`;
+ c.loads.forEach(l=>{const fl=facts(l.id);if(fl.length)h+=`<li><b>${lname(l)}:</b> ${fl.join(', ')}</li>`;});
+ $('#given').innerHTML=h+'</ul>';
+ $('#notes').innerHTML=(c.real?'The <b>real coil</b> is its winding resistance in series with its inductive reactance; it has its own impedance and consumes true power (copper loss). ':'The <b>pure coil</b> has no resistance: no true power, and its V and I are 90° apart. ')+
+  (c.par?'In parallel, every branch has the source voltage across it.':'In series, the same current flows through every load.');
+ $('#hint').innerHTML=hintTxt();
+ $('#diagram').innerHTML=diagram();
+ const cols=c.loads.map(l=>({id:l.id,head:head(l)})).concat([{id:'T',head:'Circuit Total',tot:1}]);
+ let t='<thead><tr><th style="text-align:left">Quantity</th>'+cols.map(k=>`<th class="${k.tot?'tot':''}">${k.head}</th>`).join('')+'</tr></thead><tbody>';
+ ROWS.forEach(([r,label,u])=>{t+=`<tr><th scope="row">${label}</th>`;
+  cols.forEach(k=>{const tc=k.tot?' tot':'';
+   if(isNA(k.id,r))t+=`<td class="na${tc}">—</td>`;
+   else if(G[k.id][r])t+=`<td class="giv${tc}">${fmt(val(k.id,r),r)} ${u}</td>`;
+   else t+=`<td class="${tc.trim()}"><div class="cell"><input inputmode="decimal" aria-label="${label} – ${k.head.replace(/<[^>]+>/g,'')}" data-ans="${val(k.id,r)}" data-r="${r}"><span class="u">${u}</span></div></td>`;});
+  t+='</tr>';});
+ $('#chart').innerHTML=t+'</tbody>';
+ $('#pfSel').value='';$('#pfSel').style.background='';
+ setStatus('','Solve every open cell, choose lagging/leading/unity, then check your answers.');
+}
+function hintTxt(){
+ const a=c.anchor,P=c.par;
+ const m={
+  VT:P?'E<sub>T</sub> is across every branch. Find each branch current (or size) from what is given, then build P<sub>T</sub>, Q<sub>T</sub>, S<sub>T</sub>.':'Find R<sub>T</sub>, net X<sub>T</sub> and Z<sub>T</sub> first; then I = E<sub>T</sub> / Z<sub>T</sub>.',
+  IT:P?'Choose any test voltage (e.g. 100 V) to find each branch current, get Z<sub>T</sub> = V<sub>test</sub>/I<sub>test</sub>, then E<sub>T</sub> = I<sub>T</sub> × Z<sub>T</sub>.':'The total current flows through every load. Use V = I × Z for each load.',
+  RV:'You know the resistor\'s R and V: I = V<sub>R</sub> / R. In series that current is common to every load.',
+  RI:'You know the resistor\'s R and I: E = I<sub>R</sub> × R. In parallel that voltage is across every branch.',
+  RP:P?'You know the resistor\'s R and P: E = √(P × R), and that voltage is across every branch.':'You know the resistor\'s R and P: I = √(P / R), and that current is common to every load.',
+  VS:'I<sub>T</sub> = S<sub>T</sub> / E<sub>T</sub>, and that current flows through every load.',
+  VPF:'S<sub>T</sub> = P<sub>T</sub> / PF, then I<sub>T</sub> = S<sub>T</sub> / E<sub>T</sub>.',
+  SI:'E<sub>T</sub> = S<sub>T</sub> / I<sub>T</sub>, and that voltage is across every branch.',
+  PFI:'S<sub>T</sub> = P<sub>T</sub> / PF, then E<sub>T</sub> = S<sub>T</sub> / I<sub>T</sub>; that voltage is across every branch.'};
+ return m[a]+' Once the common '+(P?'voltage':'current')+' is known, any one fact about a load (V, I, P or Q) sizes it; a real coil needs two facts.';
+}
+function tol(v,t,r){if(!isFinite(v))return false;if(Math.abs(t)<1e-9)return Math.abs(v)<=0.05;
+ const e=r==='PF'?Math.max(.01,t*.015):r==='TH'?Math.max(.5,t*.02):t*.02;return Math.abs(v-t)<=e;}
+function check(){
+ let hit=0,n=0,blank=0;
+ root.querySelectorAll('#chart input').forEach(i=>{n++;const raw=i.value.trim().replace(/,/g,'');i.classList.remove('ok','no','rev');
+  if(raw===''){blank++;i.classList.add('no');return;}
+  const ok=tol(Math.abs(parseFloat(raw)),+i.dataset.ans,i.dataset.r);i.classList.add(ok?'ok':'no');if(ok)hit++;});
+ n++;const pfOk=$('#pfSel').value===c.lag;if(pfOk)hit++;$('#pfSel').style.background=pfOk?'#ecfaf4':'#fff1f1';
+ stats.hit+=hit;stats.tot+=n;const all=hit===n;if(all){stats.streak++;stats.solved++;}else stats.streak=0;
+ $('#score').textContent=`${stats.hit} / ${stats.tot}`;$('#streak').textContent=stats.streak;$('#solved').textContent=stats.solved;
+ if(all)setStatus('good',`Excellent! All ${n} entries are correct (±2%). Try a new circuit.`);
+ else setStatus('bad',`${hit} of ${n} correct${blank?` (${blank} blank)`:''}. Red cells need another look — open “Show a starting hint” if you're stuck.`);
+}
+function reveal(){
+ root.querySelectorAll('#chart input').forEach(i=>{i.value=fmt(+i.dataset.ans,i.dataset.r);i.classList.remove('ok','no');i.classList.add('rev');});
+ $('#pfSel').value=c.lag;$('#pfSel').style.background='#fff8df';setStatus('','Solution revealed. Review the chart, then generate a new circuit.');}
+function setStatus(cls,msg){const s=$('#status');s.className='status'+(cls?' '+cls:'');s.innerHTML=msg;}
+
+/* ---------- diagrams ---------- */
+const plain=s=>s.replace(/<sub>(.*?)<\/sub>/g,'<tspan baseline-shift="sub" font-size="9">$1</tspan>');
+function res(x,y,v){return v?`<path class="res" d="M${x} ${y-30}l-9 6 18 10-18 10 18 10-18 10 18 10-9 4"/>`:`<path class="res" d="M${x-30} ${y}l6 -9 10 18 10 -18 10 18 10 -18 10 18 4 -9"/>`;}
+function coil(x,y,v){let d;if(v){d=`M${x} ${y-30}`;for(let i=0;i<4;i++)d+=' a8 7.5 0 1 1 0 15';}else{d=`M${x-30} ${y}`;for(let i=0;i<4;i++)d+=' a7.5 8 0 1 1 15 0';}return `<path class="coil" d="${d}"/>`;}
+function cap(x,y,v){return v?`<line class="cap" x1="${x-16}" y1="${y-5}" x2="${x+16}" y2="${y-5}"/><line class="cap" x1="${x-16}" y1="${y+5}" x2="${x+16}" y2="${y+5}"/>`:`<line class="cap" x1="${x-5}" y1="${y-16}" x2="${x-5}" y2="${y+16}"/><line class="cap" x1="${x+5}" y1="${y-16}" x2="${x+5}" y2="${y+16}"/>`;}
+function lines(x,y,arr,anchor){return arr.map((s,i)=>`<text class="lbl" x="${x}" y="${y+i*16}" text-anchor="${anchor||'start'}">${plain(s)}</text>`).join('');}
+function srcLbl(x,y){const t=facts('T');const show=t.length?t:['E<sub>T</sub> = ?'];return lines(x,y,show,'end');}
+function diagram(){
+ const L=c.loads;
+ if(!c.par){
+  const top=60,bot=220,xs=L.length===3?[230,370,510]:[260,450];
+  let s=`<svg viewBox="0 0 640 250" role="img" aria-label="Series circuit diagram"><circle class="src" cx="110" cy="140" r="24"/><path class="wire" d="M97 140q6.5 -12 13 0t13 0"/>${srcLbl(80,135-(facts('T').length-1)*8)}`;
+  let d=`M110 116V${top}`;xs.forEach(x=>{d+=`H${x-34}M${x+34} ${top}`;});s+=`<path class="wire" d="${d}H600V${bot}H110V164"/>`;
+  L.forEach((l,i)=>{const x=xs[i];
+   if(l.kind==='C')s+=`<path class="wire" d="M${x-34} ${top}h29M${x+5} ${top}h29"/>`+cap(x,top);
+   else s+=`<path class="wire" d="M${x-34} ${top}h4M${x+30} ${top}h4"/>`+(l.kind==='R'?res(x,top):coil(x,top));
+   s+=`<text class="nm" x="${x}" y="${top-24}" text-anchor="middle">${lname(l)}</text>`+lines(x,top+40,facts(l.id),'middle');});
+  return s+`<text class="sm" x="330" y="242" text-anchor="middle">Same current through every load</text></svg>`;}
+ const xs=L.length===3?[250,385,520]:[290,460],top=40,bot=230,mid=135;
+ let s=`<svg viewBox="0 0 640 260" role="img" aria-label="Parallel circuit diagram"><circle class="src" cx="110" cy="${mid}" r="24"/><path class="wire" d="M97 ${mid}q6.5 -12 13 0t13 0"/>${srcLbl(80,mid-(facts('T').length-1)*8)}`;
+ s+=`<path class="wire" d="M110 ${mid-24}V${top}H${xs[xs.length-1]}M110 ${mid+24}V${bot}H${xs[xs.length-1]}"/>`;
+ L.forEach((l,i)=>{const x=xs[i];
+  if(l.kind==='R')s+=`<path class="wire" d="M${x} ${top}V${mid-30}M${x} ${mid+30}V${bot}"/>`+res(x,mid,1);
+  if(l.kind==='C')s+=`<path class="wire" d="M${x} ${top}V${mid-5}M${x} ${mid+5}V${bot}"/>`+cap(x,mid,1);
+  if(l.kind==='L'){if(l.real)s+=`<path class="wire" d="M${x} ${top}V${mid-75}M${x} ${mid-15}V${mid+15}M${x} ${mid+75}V${bot}"/>`+res(x,mid-45,1)+coil(x,mid+45,1);
+   else s+=`<path class="wire" d="M${x} ${top}V${mid-30}M${x} ${mid+30}V${bot}"/>`+coil(x,mid,1);}
+  s+=`<circle cx="${x}" cy="${top}" r="4" fill="#17384f"/><circle cx="${x}" cy="${bot}" r="4" fill="#17384f"/>`;
+  s+=`<text class="nm" x="${x+20}" y="${mid-30}">${lname(l)}</text>`+lines(x+20,mid-12,facts(l.id));});
+ return s+`<text class="sm" x="330" y="252" text-anchor="middle">Same voltage across every branch</text></svg>`;
+}
+
+$('#newBtn').addEventListener('click',make);
+['#coilMode','#givenMode','#difficulty'].forEach(id=>$(id).addEventListener('change',make));
+$('#checkBtn').addEventListener('click',check);$('#revealBtn').addEventListener('click',reveal);
+$('#printBtn').addEventListener('click',()=>window.print());
+$('#clearBtn').addEventListener('click',()=>{root.querySelectorAll('#chart input').forEach(i=>{i.value='';i.classList.remove('ok','no','rev');});$('#pfSel').value='';$('#pfSel').style.background='';setStatus('','Answers cleared.');});
+make();
+})();
+</script>
+</body>
+</html>
